@@ -1,5 +1,3 @@
-
-
 name: Build Kumo Engine
 
 on:
@@ -16,7 +14,7 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build standalone Windows EXE
+    name: Build Windows release EXE
     runs-on: windows-latest
 
     steps:
@@ -35,7 +33,7 @@ jobs:
       - name: Build release executable
         run: cargo build --release --target x86_64-pc-windows-msvc
 
-      - name: Stage standalone EXE
+      - name: Stage release EXE
         shell: pwsh
         run: |
           $exe = "target/x86_64-pc-windows-msvc/release/kumo_engine.exe"
