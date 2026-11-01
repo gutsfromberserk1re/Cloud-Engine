@@ -19,7 +19,7 @@ pub fn top_bar(ctx: &egui::Context, app: &mut KumoApp) {
                 let selected = app.active_tool == tool;
                 let button = egui::Button::new(egui::RichText::new(label).size(18.0).color(if selected { theme::PHOSPHOR } else { theme::TEXT }))
                     .min_size(egui::vec2(34.0, 32.0)).fill(if selected { theme::SELECTED } else { egui::Color32::TRANSPARENT })
-                    .stroke(egui::Stroke::new(if selected { 1.0 } else { 0.0 }, theme::BORDER));
+                    .stroke(egui::Stroke::new(if selected { 1.0_f32 } else { 0.0_f32 }, theme::BORDER));
                 if ui.add(button).on_hover_text(hint).clicked() { app.active_tool = tool; app.status = format!("{hint} tool selected"); }
             }
 

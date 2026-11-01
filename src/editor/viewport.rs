@@ -1,6 +1,24 @@
 use eframe::egui;
 use crate::{app::{KumoApp, Primitive}, theme};
 
+// egui 0.29 has no ellipse painter helpers, so draw ellipses as sampled polygons.
+fn ellipse_points(center: egui::Pos2, radii: egui::Vec2, segments: usize) -> Vec<egui::Pos2> {
+    (0..segments)
+        .map(|i| {
+            let angle = std::f32::consts::TAU * i as f32 / segments as f32;
+            center + egui::vec2(radii.x * angle.cos(), radii.y * angle.sin())
+        })
+        .collect()
+}
+
+fn ellipse_stroke(painter: &egui::Painter, center: egui::Pos2, radii: egui::Vec2, stroke: egui::Stroke) {
+    painter.add(egui::Shape::closed_line(ellipse_points(center, radii, 48), stroke));
+}
+
+fn ellipse_filled(painter: &egui::Painter, center: egui::Pos2, radii: egui::Vec2, fill: egui::Color32, stroke: egui::Stroke) {
+    painter.add(egui::Shape::convex_polygon(ellipse_points(center, radii, 48), fill, stroke));
+}
+
 pub fn show(ui: &mut egui::Ui, app: &mut KumoApp) {
     ui.horizontal(|ui| {
         ui.selectable_label(true, "◈  Scene");
@@ -25,7 +43,7 @@ pub fn show(ui: &mut egui::Ui, app: &mut KumoApp) {
     // Editor-only 2D primitive previews. These are not the engine's 3D renderer yet.
     let c = rect.center() + egui::vec2(0.0, 35.0);
     let fill = egui::Color32::from_rgb(155, 163, 171);
-    let edge = egui::Stroke::new(1.4, egui::Color32::from_rgb(205, 212, 220));
+    let edge = egui::Stroke::new(1.4_f32, egui::Color32::from_rgb(205, 212, 220));
     match app.selected_primitive().unwrap_or(Primitive::Cube) {
         Primitive::Cube => {
             let top = [c + egui::vec2(-42.0,-72.0), c + egui::vec2(0.0,-94.0), c + egui::vec2(43.0,-72.0), c + egui::vec2(0.0,-50.0)];
@@ -33,9 +51,9 @@ pub fn show(ui: &mut egui::Ui, app: &mut KumoApp) {
             painter.add(egui::Shape::convex_polygon(vec![top[0],top[3],c+egui::vec2(0.0,12.0),c+egui::vec2(-42.0,-10.0)], egui::Color32::from_rgb(92,101,110), edge));
             painter.add(egui::Shape::convex_polygon(vec![top[3],top[2],c+egui::vec2(43.0,-10.0),c+egui::vec2(0.0,12.0)], egui::Color32::from_rgb(116,125,134), edge));
         }
-        Primitive::Sphere => { painter.circle_filled(c, 53.0, fill); painter.circle_stroke(c, 53.0, edge); painter.ellipse_stroke(c, egui::vec2(53.0, 19.0), edge); }
-        Primitive::Cylinder => { let body = egui::Rect::from_min_max(c+egui::vec2(-42.0,-38.0), c+egui::vec2(42.0,38.0)); painter.rect_filled(body,0.0,fill); painter.rect_stroke(body,0.0,edge); painter.ellipse_filled(c+egui::vec2(0.0,-38.0),egui::vec2(42.0,15.0),fill); painter.ellipse_stroke(c+egui::vec2(0.0,-38.0),egui::vec2(42.0,15.0),edge); painter.ellipse_stroke(c+egui::vec2(0.0,38.0),egui::vec2(42.0,15.0),edge); }
-        Primitive::Cone => { let pts=vec![c+egui::vec2(0.0,-75.0),c+egui::vec2(52.0,45.0),c+egui::vec2(-52.0,45.0)]; painter.add(egui::Shape::convex_polygon(pts,fill,edge)); painter.ellipse_stroke(c+egui::vec2(0.0,45.0),egui::vec2(52.0,15.0),edge); }
+        Primitive::Sphere => { painter.circle_filled(c, 53.0, fill); painter.circle_stroke(c, 53.0, edge); ellipse_stroke(&painter, c, egui::vec2(53.0, 19.0), edge); }
+        Primitive::Cylinder => { let body = egui::Rect::from_min_max(c+egui::vec2(-42.0,-38.0), c+egui::vec2(42.0,38.0)); painter.rect_filled(body,0.0,fill); painter.rect_stroke(body,0.0,edge); ellipse_filled(&painter, c+egui::vec2(0.0,-38.0),egui::vec2(42.0,15.0),fill,edge); ellipse_stroke(&painter, c+egui::vec2(0.0,-38.0),egui::vec2(42.0,15.0),edge); ellipse_stroke(&painter, c+egui::vec2(0.0,38.0),egui::vec2(42.0,15.0),edge); }
+        Primitive::Cone => { let pts=vec![c+egui::vec2(0.0,-75.0),c+egui::vec2(52.0,45.0),c+egui::vec2(-52.0,45.0)]; painter.add(egui::Shape::convex_polygon(pts,fill,edge)); ellipse_stroke(&painter, c+egui::vec2(0.0,45.0),egui::vec2(52.0,15.0),edge); }
         Primitive::Plane => { let pts=vec![c+egui::vec2(-75.0,-15.0),c+egui::vec2(0.0,-48.0),c+egui::vec2(75.0,-15.0),c+egui::vec2(0.0,18.0)]; painter.add(egui::Shape::convex_polygon(pts,fill,edge)); }
         Primitive::Triangle => { let pts=vec![c+egui::vec2(0.0,-72.0),c+egui::vec2(62.0,42.0),c+egui::vec2(-62.0,42.0)]; painter.add(egui::Shape::convex_polygon(pts,fill,edge)); }
     }
