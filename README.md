@@ -1,59 +1,47 @@
-# Kumo Engine — starter
+# Kumo Engine — Scene Editor Foundation
 
-A modular, lightweight editor shell in Rust. This is the first UI foundation, not yet a complete game engine.
+A lightweight Rust/egui scene editor foundation. It is an independent project; it does not use Roblox APIs, Roblox runtime systems, or Lua.
 
-## Run
+## Build
 
 ```bash
 cargo run
 ```
 
-## Current foundation
+The project currently uses `eframe` / `egui` 0.29.1. A committed `Cargo.lock` is recommended for reproducible builds. Do not use `cargo build --locked` until a lockfile has been generated and committed.
 
-- Modular editor areas: toolbar, Explorer, Inspector, viewport, Console, Asset Browser, theme.
-- Compact Select / Move / Rotate / Scale tools.
-- Play / Pause / Stop controls.
-- Resizable side and bottom panels, with close/toggle controls.
-- Neutral scene viewport, intentionally separate from the phosphor-blue editor theme.
-- Optional JetBrains Mono font loading.
+## Viewport controls
 
-## Architecture
+- **Right mouse + drag:** look around.
+- **W / A / S / D:** fly forward, left, backward, right.
+- **Arrow keys:** same movement as WASD.
+- **Q / E:** move down / up.
+- **Mouse wheel:** dolly forward / backward.
+- **Shift:** move faster.
+- **F:** focus the selected object.
 
-```text
-src/
-  main.rs
-  app/
-    mod.rs
-  editor/
-    mod.rs
-    toolbar.rs
-    explorer.rs
-    inspector.rs
-    viewport.rs
-    assets.rs
-  theme.rs
-assets/
-  fonts/
-```
+## Editing
 
-Each editor area is isolated in its own module. Keep engine systems (scene graph, renderer, asset pipeline, physics, audio) separate from editor UI as they are introduced.
+- **1:** Select tool.
+- **2:** Move tool.
+- **3:** Rotate tool.
+- **4:** Resize / Scale tool.
+- Left-click an object to select it; its edges turn white.
+- Drag a selected object with Select or Move to move it along the ground plane.
+- Move gizmo: drag the red, green, or blue axis handle to constrain movement.
+- Rotate gizmo: drag a ring, or drag the selected object, to rotate it.
+- Scale gizmo: drag an axis handle, or drag the selected object, to scale it.
+- **Delete:** remove the selected object or folder and its contents.
+- **Ctrl+D:** duplicate a selected object.
+- **Ctrl+N:** create an empty scene.
+- **Ctrl+S:** save the scene as `scene.kumo` in the current working directory.
 
-## Graphics backend note
+## Scene organization
 
-This starter uses egui's Glow renderer (OpenGL) to keep the first editor shell relatively accessible. The viewport is currently a UI-drawn placeholder, not a real 3D renderer. A dedicated renderer module should replace it without coupling rendering logic to the editor panels.
+The Explorer starts empty. Use its **+** button or right-click the empty area to create folders. Right-click a folder to add a subfolder, rename it, or delete it. Right-click an object to duplicate it, move it into a folder, or delete it. The Inspector exposes object transforms and folder information.
 
-## Next milestones
+Use **Insert** to add a cube, sphere, cylinder, cone, plane, or triangle. There are no default SpawnPoints, Workspace objects, scripts, or game-specific services.
 
-1. Add a real project model and scene serialization.
-2. Add an actual 3D viewport renderer and camera navigation.
-3. Implement selection and transform gizmos.
-4. Add asset import and a real Inspector backed by scene properties.
-5. Add undo/redo and play-mode isolation.
+## Current scope and limitations
 
-## Insert Part (prototype)
-
-The toolbar now has an **Insert Part** action that creates a cube immediately, plus an adjacent dropdown for Cube, Sphere, Cylinder, Cone, Plane, and Triangle. Inserted primitives are added to the Explorer, selected automatically, and their primitive type appears in the Inspector. The viewport draws a simple 2D editor preview of the selected primitive; this is still placeholder UI geometry, not a true 3D mesh or renderer.
-
-## Lighting status
-
-There is not yet a scene-lighting implementation. The dark phosphor-blue palette belongs to the editor UI only. The viewport uses neutral grey placeholder colours and a drawn grid; lights, materials, shadows, and physically based rendering will be implemented with the future scene renderer.
+The viewport is a lightweight CPU-side projected scene preview drawn with egui. It supports perspective camera movement, basic primitive geometry, selection, and transform editing. It is **not yet a full 3D renderer**: there is no mesh import pipeline, material system, lighting/shadows, physics, game runtime, scripting, or GPU scene renderer. Play/Game controls have intentionally been left out rather than showing buttons that do nothing. Those systems can be added as separate engine modules later.
